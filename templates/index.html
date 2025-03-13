@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优化</title>
+    <script src="https://unpkg.com/intersection-observer@0.12.0/intersection-observer.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="left-padding"></div>
+        <div class="media-wrapper">
+            <button id="generate-button" disabled>生成媒体缩略图和压缩视频</button>
+            <div id="progress-info"></div>
+            <div id="media-groups"></div>
+        </div>
+        <div class="right-padding"></div>
+    </div>
+    <div id="fullscreen-overlay">
+        <!-- 全屏展示时，根据类型动态切换 img 和 video -->
+        <div id="fullscreen-content"></div>
+        <span id="left-arrow" class="arrow">&lt;</span>
+        <span id="right-arrow" class="arrow">&gt;</span>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
