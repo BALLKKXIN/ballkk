@@ -1,8 +1,23 @@
 import os
 
 from PIL import Image
-from moviepy import *
+from moviepy import VideoFileClip
+import configparser
 
+# 读取配置文件
+config = configparser.ConfigParser()
+config.read('config.ini')
+MEDIA_DIR = config.get('media','media_dir')
+CACHE_DIR = config.get('media', 'cache_dir')
+THUMBNAIL_WIDTH = int(config.get('media', 'thumbnail_width'))
+THUMBNAIL_HEIGHT = int(config.get('media', 'thumbnail_height'))
+THUMBNAIL_VIDEO_HEIGHT = int(config.get('media', 'thumbnail_video_height'))
+
+EXTERNAL_CACHE_DIR = os.path.abspath(CACHE_DIR)  # 修改为你想要的外部目录路径
+EXTERNAL_MEDIA_DIR = os.path.abspath(MEDIA_DIR)  # 修改为你想要的外部目录路径
+
+# 定义外部缓存目录路径
+#EXTERNAL_CACHE_DIR = os.path.abspath('../cache')  # 修改为你想要的外部目录路径
 
 def generate_thumbnail(original_path, thumbnail_path):
     try:
@@ -13,8 +28,9 @@ def generate_thumbnail(original_path, thumbnail_path):
 
         if original_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
             img = Image.open(original_path)
-            img.thumbnail((300, 300), Image.LANCZOS)
+            img.thumbnail((THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT), Image.LANCZOS)
             img.save(thumbnail_path)
+            print(f"完成G{thumbnail_path}")
             return thumbnail_path
         #elif original_path.lower().endswith(('.mp4', '.mov', '.avi')):
             clip = VideoFileClip(original_path)
@@ -38,9 +54,13 @@ def generate_compressed_video(original_path, compressed_path):
             os.makedirs(compressed_dir)
 
         clip = VideoFileClip(original_path)
-        clip = clip.resized(height=240)  # 将 resize 改为 resized
+        clip_duration = clip.duration
+        if clip_duration > 5:
+            clip = clip.subclipped(0, 5)
+        clip = clip.resized(height=THUMBNAIL_VIDEO_HEIGHT)
         clip.write_videofile(compressed_path, codec='libx264')
         clip.close()
+        print(f"完成V{compressed_path}")
         return compressed_path
     except Exception as e:
         print(f"生成压缩视频时出错: {e}")

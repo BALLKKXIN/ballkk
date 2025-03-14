@@ -1,7 +1,10 @@
 import sqlite3
 import os
 from datetime import datetime
-from media_utils import delete_thumbnail_and_video
+from media_utils import *
+
+# 定义外部缓存目录路径
+#EXTERNAL_CACHE_DIR = os.path.abspath('../cache')  # 修改为你想要的外部目录路径
 
 def init_db():
     conn = sqlite3.connect('media_cache.db')
@@ -20,6 +23,9 @@ def init_db():
     conn.close()
 
 def get_media_info():
+    # 获取 media_dir 的绝对路径
+    #media_dir = os.path.abspath('../media')
+    media_dir = EXTERNAL_MEDIA_DIR
     conn = sqlite3.connect('media_cache.db')
     c = conn.cursor()
     c.execute('SELECT * FROM media_cache')
@@ -28,15 +34,17 @@ def get_media_info():
     for row in rows:
         _, original_path, thumbnail_path, compressed_video_path, last_modified, is_video = row
         try:
-            # 去除 media 文件夹
-            if original_path.startswith('media'):
-                original_path = original_path.replace('media' + os.sep, '', 1)
-            date = datetime.fromtimestamp(os.path.getmtime(os.path.join('media', original_path))).strftime('%Y-%m-%d')
+            # 使用绝对路径
+            date = datetime.fromtimestamp(os.path.getmtime(original_path)).strftime('%Y-%m-%d')
             if date not in media:
                 media[date] = []
+            # 修改这里，确保 original_path 是外部路径,显示原图和缩略图
+            external_original_path = original_path.replace(media_dir + os.sep, '', 1)
+            external_thumbnail_path = thumbnail_path.replace(EXTERNAL_CACHE_DIR + os.sep, '', 1)
             media[date].append({
-                'original_path': original_path,
-                'thumbnail_path': thumbnail_path,
+                'original_path': external_original_path,
+                #'thumbnail_path': thumbnail_path,
+                'thumbnail_path': external_thumbnail_path,
                 'compressed_video_path': compressed_video_path,
                 'last_modified': last_modified,
                 'is_video': is_video
@@ -47,7 +55,9 @@ def get_media_info():
     return media
 
 def generate_all_media():
-    media_dir ='../media'
+    # 获取 media_dir 的绝对路径
+    #media_dir = os.path.abspath('../media')
+    media_dir = EXTERNAL_MEDIA_DIR
     conn = sqlite3.connect('media_cache.db')
     c = conn.cursor()
     total = 0
@@ -65,7 +75,10 @@ def generate_all_media():
             is_video = mimetype.startswith('video')
             # 构建缓存目录结构与实际相册目录一致
             relative_path = os.path.relpath(file_path, media_dir)
-            cache_sub_dir = os.path.join('cache', os.path.dirname(relative_path))
+            #cache_sub_dir = os.path.join('cache', os.path.dirname(relative_path))
+            cache_sub_dir = os.path.join(EXTERNAL_CACHE_DIR, os.path.dirname(relative_path))
+            if not os.path.exists(cache_sub_dir):
+                os.makedirs(cache_sub_dir)
             thumbnail_path = generate_thumbnail(file_path, os.path.join(cache_sub_dir, f'thumbnail_{os.path.basename(file_path)}'))
             compressed_video_path = None
             if is_video:

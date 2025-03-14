@@ -6,6 +6,10 @@ import threading
 import schedule
 import time
 
+from media_utils import *
+
+# 定义外部缓存目录路径
+#EXTERNAL_CACHE_DIR = os.path.abspath('../cache')  # 修改为你想要的外部目录路径
 
 app = Flask(__name__)
 CORS(app)
@@ -43,12 +47,17 @@ def generate_media():
 
 @app.route('/cache/<path:filename>')
 def cache(filename):
-    return send_from_directory('cache', filename)
+    #return send_from_directory(EXTERNAL_CACHE_DIR, filename)
+    # 使用绝对路径来查找文件
+    return send_from_directory(EXTERNAL_CACHE_DIR, filename, as_attachment=False)
 
 
+#media_dir = os.path.abspath('../media')
+media_dir = EXTERNAL_MEDIA_DIR
 @app.route('/<path:filename>')
 def media(filename):
-    return send_from_directory('media', filename)
+    # 使用绝对路径来查找文件
+    return send_from_directory(EXTERNAL_MEDIA_DIR, filename, as_attachment=False)
 
 
 @app.route('/delete_media/<path:original_path>', methods=['DELETE'])
@@ -85,7 +94,7 @@ if __name__ == '__main__':
 
 
     schedule_thread = threading.Thread(target=run_schedule)
-    #TODO schedule_thread.start()
+    # TODO schedule_thread.start()
 
-    #app.run(debug=True, host='0.0.0.0', port=5000)
+    # app.run(debug=True, host='0.0.0.0', port=5000)
     app.run(debug=True)
